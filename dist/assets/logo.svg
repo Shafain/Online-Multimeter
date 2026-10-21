@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" fill="none">
+  <title>Online Multimeter — Signal Orbit</title>
+  <desc>A broken cyan orbit surrounds a precise signal trace ending in a probe contact.</desc>
+  <defs>
+    <linearGradient id="orbit" x1="12" y1="60" x2="57" y2="11" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#218A9C"/>
+      <stop offset="1" stop-color="#86F5E7"/>
+    </linearGradient>
+  </defs>
+  <path d="M53 14.6A27.3 27.3 0 1 0 61.2 46.5" stroke="url(#orbit)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M13 37h10l8-15 10 27 9-17h8" stroke="#E5F8F5" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="59.5" cy="32" r="4" fill="#70EBDD"/>
+  <circle cx="59.5" cy="32" r="1.35" fill="#112129"/>
+  <path d="m58.5 18.5 2 2" stroke="#70EBDD" stroke-width="2" stroke-linecap="round"/>
+</svg>
