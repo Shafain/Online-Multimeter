@@ -1,36 +1,32 @@
 # Online Multimeter
 
-A responsive USB potentiometer dashboard for Arduino Uno R3, with live voltage, estimated resistance, electrical position, a 30-second graph, session statistics, hold/resume, CSV export and a clearly labeled demo mode. No backend or build dependencies.
+An oscilloscope-style dark digital bench instrument for Arduino Uno R3: a large instrument display, function selector, six selectable analog channels, measurement history, min/max/average, hold, demo, and CSV export. No build dependencies or telemetry.
 
-## Connect your Uno
+## Start
 
-1. Confirm your potentiometer's outer terminals connect to **5V** and **GND**, and its wiper connects to **A0**. Keep the analog input within GND–5V.
-2. Open `dist/OnlineMultimeter.ino` in Arduino IDE. Save it in a folder named `OnlineMultimeter` when prompted, select **Arduino Uno** and the correct port, then upload it.
-3. Close Arduino Serial Monitor (it holds the port open).
-4. Run `npm start` and open http://127.0.0.1:4173 in desktop Chrome or Edge. Alternatively deploy the contents of `dist` to any HTTPS static host.
-5. Click **Connect Arduino**, select your Uno's port, and use **115200 baud** for the supplied sketch.
-6. Enter the potentiometer's actual resistance rating. The default 10 kΩ is an example, not a measured value. The 5.00 V reference is nominal; enter the measured supply voltage for better voltage accuracy.
+In the folder containing package.json, run `npm.cmd start` on Windows (`npm start` elsewhere). Open http://127.0.0.1:4173 in desktop Chrome or Edge and leave the terminal open. If port 4173 is already used, open the existing app or stop its server before starting another. HTTPS static hosting also works.
 
-## Measurements
+Upload `dist/OnlineMultimeter/OnlineMultimeter.ino` with Arduino IDE to stream A0–A5 at 115200 baud, then close Serial Monitor. The old integer-only sketch remains compatible with A0. Select the actual wired input; floating inputs are not valid measurements.
 
-The Uno's 10-bit ADC produces 0–1023. Display conversion: voltage = raw / 1023 × reference; electrical position = raw / 1023 × 100%; estimated wiper-to-GND resistance = raw / 1023 × potentiometer rating. Assumes negligible wiper loading. Position describes voltage ratio; a logarithmic potentiometer will not correspond linearly to mechanical angle. Component tolerance, supply variation, ADC error and contact resistance affect accuracy. This circuit does not measure unknown resistance or current.
+## Capabilities and limits
 
-The serial protocol accepts one integer 0–1023 per newline, or JSON such as `{"raw":512}` per newline. Partial lines are buffered and malformed/overlong frames discarded. The supplied sketch sends at 20 Hz. Serial access requires HTTPS or localhost and a user-selected port in a compatible desktop browser. An embedded preview may block serial access; open the app directly in desktop Chrome/Edge.
+- DC voltage: direct 0–5 V ADC input or a user-configured external divider.
+- DC current: configurable linear analog-output current sensor. Zero voltage, sensitivity and current limit must match the actual sensor.
+- Resistance: known-reference divider on an unpowered, isolated component; not the old potentiometer resistance estimate.
+- Continuity: visual resistance threshold with the same divider circuit.
+- Potentiometer: electrical position in percent.
+- AC/advanced: explicitly unavailable. RMS AC, frequency, capacitance, diode testing, and hardware autoranging are not implemented.
 
-## Session behavior
+Read `dist/hardware.html` before wiring. Additional modes require matching external hardware and explicit setup confirmation. Selecting a mode does not switch wiring or provide input protection. This software and an Uno alone are not a protected, calibrated, safety-rated multimeter. Do not connect mains, negative voltage, signals above 5 V, or motor spikes directly. Battery/motor circuits need suitable protection and current-limited development practices.
 
-Readings stay in browser memory. The latest 10,000 samples are retained; reload clears them. CSV includes timestamp, source (demo or USB), raw ADC, voltage, position, resistance estimate and calibration settings. Hold pauses capture. Starting a new source or changing calibration clears the session to keep sources/settings separate. Export before changing these settings. After disconnecting, recorded samples remain available for export. Graph and statistics always use volts, regardless of the selected main readout.
+Resistance topology: Uno 5V → known resistor → ADC node → unknown resistor → GND. Uses the same supply for ADC reference and excitation. Current: I = (ADC voltage − sensor zero voltage) / sensitivity. Divider voltage: V = raw / 1023 × reference × multiplier. Enter actual calibrated parameters; defaults are examples, not detected hardware. Accuracy is limited by the ADC, supply, resistors/sensors, wiring and loading. No automatic sensor identification is performed.
+
+## Data
+
+Firmware sends newline-delimited JSON, e.g. `{"A0":512,"A1":128,"A2":0,"A3":0,"A4":0,"A5":0}`. Legacy integer lines or `{"raw":512}` map to A0. Frames can arrive fragmented; invalid values and overlong frames are discarded. ADC readings must be integer 0–1023.
+
+Only the selected channel is recorded. Measurements and graph units follow the selected function. OL indicates an unusable/saturated measurement. Stats exclude invalid measurements; CSV retains their status and raw ADC. Configuration changes, mode changes, channel changes and source changes clear the recording to avoid mixing units/calibrations. Hold pauses recording. The latest 10,000 samples stay in memory; reload clears them. Export before changing setup. CSV includes source, mode, channel, value, unit, raw data and calibration. Demo is always labeled simulated.
 
 ## Development
 
-`npm test` runs parser, conversion and chunk-boundary tests with Node's built-in test runner. `npm start` serves the static app at localhost:4173. The UI uses local CSS and JavaScript; Google Fonts is optional and falls back to installed fonts. No analytics or measurement uploads.
-
-## GitHub Pages
-
-For a public deployment, configure GitHub Pages to publish the `dist` directory through a deployment workflow, or upload the contents of `dist` to your preferred static host. Repository contents alone do not enable GitHub Pages.
-
-## References
-
-- [Web Serial API](https://developer.chrome.com/docs/capabilities/serial)
-- [Arduino analogRead](https://docs.arduino.cc/language-reference/en/functions/analog-io/analogRead/)
-
+`npm test` runs Node tests covering serial parsing, fragmentation, invalid frames, physical conversions, required configurations and over-range behavior. `node --check dist/app.js` checks UI syntax. Firmware has not been compiled or tested on physical hardware in this environment. The hosted copy must be separately redeployed after repository changes; a GitHub commit does not automatically update it.
